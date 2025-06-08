@@ -12,11 +12,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
-    steps:
+      steps:
     - name: Checkout code
       uses: actions/checkout@v4
-        - name: Setup PHP
+      
+    - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.2'
