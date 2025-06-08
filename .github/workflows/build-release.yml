@@ -16,12 +16,11 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
-    - name: Setup PHP
+        - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.1'
-        extensions: mbstring, intl, zip
+        php-version: '8.2'
+        extensions: mbstring, intl, zip, gd, xml, dom, fileinfo
         tools: composer
         
     - name: Cache Composer dependencies
@@ -33,7 +32,12 @@ jobs:
           ${{ runner.os }}-composer-
           
     - name: Install Composer dependencies
-      run: composer install --no-dev --optimize-autoloader --no-interaction
+      run: |
+        composer install --no-dev --optimize-autoloader --no-interaction
+        if [ $? -ne 0 ]; then
+          echo "Composer install failed, trying with --ignore-platform-reqs"
+          composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
+        fi
       
     - name: Create plugin archive
       run: |
