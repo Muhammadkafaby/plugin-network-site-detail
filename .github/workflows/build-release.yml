@@ -12,7 +12,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-      steps:
+    
+    steps:
     - name: Checkout code
       uses: actions/checkout@v4
       
@@ -30,9 +31,10 @@ jobs:
         key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
         restore-keys: |
           ${{ runner.os }}-composer-
-          
-    - name: Install Composer dependencies
+            - name: Install Composer dependencies
       run: |
+        # Remove existing lock file to regenerate with PHP 8.2
+        rm -f composer.lock
         composer install --no-dev --optimize-autoloader --no-interaction
         if [ $? -ne 0 ]; then
           echo "Composer install failed, trying with --ignore-platform-reqs"
