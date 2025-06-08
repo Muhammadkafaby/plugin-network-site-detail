@@ -1,0 +1,91 @@
+# Development and build tools
+vendor/bin/*
+vendor/phpunit/*
+vendor/*/*test*
+vendor/*/*docs*
+vendor/*/*examples*
+vendor/*/*guides*
+vendor/*/*other*
+
+# Metadata and documentation
+vendor/**/*.md
+vendor/**/*LICENSE*
+vendor/**/*CHANGELOG*
+vendor/**/*CONTRIBUTING*
+vendor/**/*README*
+vendor/**/*UPGRADING*
+vendor/**/*SECURITY*
+vendor/**/*COPYING*
+vendor/**/*BACKERS*
+
+# Configuration files
+vendor/**/*.json
+vendor/**/*.lock
+vendor/**/*.xml
+vendor/**/*.dist
+vendor/**/*.yml
+vendor/**/*.yaml
+vendor/**/*.neon
+vendor/**/*.cnf
+vendor/**/*.tool-versions
+vendor/**/*.pubkey
+
+# Temporary, build-related, or debugging files
+vendor/**/*.sarif
+vendor/**/*.bat
+vendor/**/*.sh
+vendor/**/*.phar
+
+# Git, versioning, and editor-related files
+vendor/**/.git*
+vendor/**/.editorconfig
+vendor/**/.php-cs-fixer*
+vendor/**/.repo-metadata.json
+vendor/**/.github/**
+
+# Data and spreadsheet files
+vendor/**/*.xlsx
+vendor/**/*.xls
+vendor/**/*.csv
+
+# Files with filesystem compatibility issues
+vendor/**/*:*
+vendor/**/*?*
+vendor/**/*<*
+vendor/**/*>*
+vendor/**/*|*
+vendor/**/*"*
+
+# Specific problematic file with spaces
+vendor/phpoffice/phpspreadsheet/src/PhpSpreadsheet/Chart/Renderer/PHP Charting Libraries.txt
+
+# General patterns for files with spaces
+vendor/**/* *
+
+# Development and build files (not needed in distribution)
+.gitignore
+.git/**
+.github/**
+.vscode/**
+.idea/**
+*.zip
+*.tar.gz
+dist/**
+build/**
+node_modules/**
+package.json
+package-lock.json
+composer.lock
+phpunit.xml
+.phpunit.result.cache
+.php_cs.cache
+.php-cs-fixer.cache
+create-release.ps1
+README.md
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
