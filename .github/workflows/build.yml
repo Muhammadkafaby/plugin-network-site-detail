@@ -1,0 +1,56 @@
+name: Build WordPress Plugin
+
+on:
+  push:
+    tags:
+      - 'v*'
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'
+        extensions: mbstring, xml, zip
+        
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+          
+    - name: Install Composer dependencies
+      run: composer install --no-dev --optimize-autoloader
+      
+    - name: Create distribution archive
+      run: |
+        # Create temporary directory
+        mkdir -p dist/network-site-details
+        
+        # Copy files according to .distignore patterns
+        rsync -av --exclude-from=.distignore . dist/network-site-details/
+        
+        # Create ZIP archive
+        cd dist
+        zip -r network-site-details-${{ github.ref_name }}.zip network-site-details/
+        
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./dist/network-site-details-${{ github.ref_name }}.zip
+        asset_name: network-site-details-${{ github.ref_name }}.zip
+        asset_content_type: application/zip

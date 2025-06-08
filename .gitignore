@@ -86,13 +86,14 @@ gulpfile.js
 webpack.config.js
 rollup.config.js
 
-# Testing and CI
+# Testing and CI (but keep our workflow)
 .travis.yml
-.github/
 codecov.yml
 .scrutinizer.yml
 phpcs.xml
 phpmd.xml
+
+# Note: .github/workflows/ is kept for our build automation
 
 # Documentation generation
 /docs/
