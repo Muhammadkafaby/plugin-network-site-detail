@@ -44,4 +44,4 @@ Initial release of Network Site Details plugin for WordPress Multisite.
 - View charts and tables for multisite data analysis.
 
 == Support ==
-For support and bug reports, please visit: https://github.com/rihansen11/NetworkSiteDetails
+For support and bug reports, please visit: https://github.com/rihansen11/NetworkSiteDetail
