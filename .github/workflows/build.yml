@@ -3,54 +3,79 @@ name: Build WordPress Plugin
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
   release:
     types: [published]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.1'
-        extensions: mbstring, xml, zip
-        
-    - name: Cache Composer packages
-      id: composer-cache
-      uses: actions/cache@v3
-      with:
-        path: vendor
-        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-php-
-          
-    - name: Install Composer dependencies
-      run: composer install --no-dev --optimize-autoloader
-      
-    - name: Create distribution archive
-      run: |
-        # Create temporary directory
-        mkdir -p dist/network-site-details
-        
-        # Copy files according to .distignore patterns
-        rsync -av --exclude-from=.distignore . dist/network-site-details/
-        
-        # Create ZIP archive
-        cd dist
-        zip -r network-site-details-${{ github.ref_name }}.zip network-site-details/
-        
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./dist/network-site-details-${{ github.ref_name }}.zip
-        asset_name: network-site-details-${{ github.ref_name }}.zip
-        asset_content_type: application/zip
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: mbstring, xml, zip
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      - name: Install Composer dependencies
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Create distribution archive
+        run: |
+          # Create temporary directory
+          mkdir -p dist/network-site-details
+
+          # Copy files according to .distignore patterns
+          rsync -av --exclude-from=.distignore . dist/network-site-details/
+
+          # Remove forbidden files and files with spaces
+          cd dist/network-site-details
+          find vendor -name "*.md" -delete
+          find vendor -name "*LICENSE*" -delete
+          find vendor -name "*CHANGELOG*" -delete
+          find vendor -name "*README*" -delete
+          find vendor -name "*.xml" -delete
+          find vendor -name "*.dist" -delete
+          find vendor -name "*.yml" -delete
+          find vendor -name "*.yaml" -delete
+          find vendor -name "*.neon" -delete
+          find vendor -name "*.cnf" -delete
+          find vendor -name "*.tool-versions" -delete
+          find vendor -name "*.sarif" -delete
+          find vendor -name "*.bat" -delete
+          find vendor -name "*.sh" -delete
+          find vendor -name "*.xlsx" -delete
+          find vendor -name "*.xls" -delete
+          find vendor -name "*.csv" -delete
+          find vendor -type f -name "* *" -delete
+          find vendor -type d -name "*test*" -exec rm -rf {} + 2>/dev/null || true
+          find vendor -type d -name "*docs*" -exec rm -rf {} + 2>/dev/null || true
+          find vendor -type d -name "*examples*" -exec rm -rf {} + 2>/dev/null || true
+          find vendor -type d -name "*guides*" -exec rm -rf {} + 2>/dev/null || true
+          find vendor -type d -name ".github" -exec rm -rf {} + 2>/dev/null || true
+          rm -rf vendor/bin 2>/dev/null || true
+          cd ../
+          zip -r network-site-details-${{ github.ref_name }}.zip network-site-details/
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./dist/network-site-details-${{ github.ref_name }}.zip
+          asset_name: network-site-details-${{ github.ref_name }}.zip
+          asset_content_type: application/zip

@@ -1,8 +1,0 @@
-# Git LFS configuration for large vendor files
-vendor/**/*.phar filter=lfs diff=lfs merge=lfs -text
-vendor/**/*.zip filter=lfs diff=lfs merge=lfs -text
-vendor/**/*.tar.gz filter=lfs diff=lfs merge=lfs -text
-
-# Track large library files
-vendor/google/apiclient-services/src/**/*.php filter=lfs diff=lfs merge=lfs -text
-vendor/phpoffice/phpspreadsheet/src/**/*.php filter=lfs diff=lfs merge=lfs -text

@@ -1,14 +1,14 @@
 # WordPress Plugin - Network Site Details
-# .gitignore for development environment
+# IMPORTANT: For WordPress plugins, vendor/ directory should generally
+# be committed to ensure the plugin works without composer install.
+# However, if you're using CI/CD to build releases, you might ignore it here.
 
-# IMPORTANT: Using GitHub Actions to build releases with Composer
-# Vendor directory is excluded from git and built automatically
+# Uncomment the line below ONLY if you use CI/CD for building releases
+# vendor/
 
-# Composer dependencies (built automatically via GitHub Actions)
-vendor/
-
-# Composer lock file (keep this for reproducible builds)
-# composer.lock is kept to ensure consistent dependency versions
+# Composer lock file (can be ignored for libraries, but keep for applications)
+# For WordPress plugins, it's recommended to commit composer.lock
+# composer.lock
 
 # Development tools and build files
 *.zip
@@ -86,15 +86,24 @@ gulpfile.js
 webpack.config.js
 rollup.config.js
 
-# Testing and CI (but keep our workflow)
+# Testing and CI
 .travis.yml
+.github/
 codecov.yml
 .scrutinizer.yml
 phpcs.xml
 phpmd.xml
 
-# Note: .github/workflows/ is kept for our build automation
-
 # Documentation generation
 /docs/
 /documentation/
+vendor/**/*:*
+vendor/**/*?*
+vendor/**/*<*
+vendor/**/*>*
+vendor/**/*|*
+vendor/**/*"*
+# Specific problematic file with spaces
+vendor/phpoffice/phpspreadsheet/src/PhpSpreadsheet/Chart/Renderer/PHP Charting Libraries.txt
+# General patterns for files with spaces
+vendor/**/* *
