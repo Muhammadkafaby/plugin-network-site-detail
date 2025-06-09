@@ -3,7 +3,7 @@
  * Plugin Name: Network Site Details
  * Plugin URI: https://it.telkomuniversity.ac.id/
  * Description: Displays additional details like post count, last accessed date, and visitor count for each subsite in a WordPress multisite network. Also supports exporting data and displays them on a dashboard with charts.
- * Version: 1.0.1
+ * Version: 1.0
  * Author: Rihansen Purba, Ryan Gusman Banjarnahor, Zafran, Muhammad Kafaby
  * Author URI: https://github.com/rihansen11/NetworkSiteDetails
  * License: GPLv2 or later
@@ -23,18 +23,18 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 // Hook to add the dashboard page in Network Admin.
-add_action( 'network_admin_menu', 'netsd_add_dashboard_menu' );
+add_action( 'network_admin_menu', 'nsd_add_dashboard_menu' );
 
 /**
  * Add a dashboard page to display post count, views, and percentages.
  */
-function netsd_add_dashboard_menu() {
+function nsd_add_dashboard_menu() {
     add_menu_page(
         __( 'Site Details Dashboard', 'network-site-details' ),
         __( 'Dashboard', 'network-site-details' ),
         'manage_network',
-        'netsd-dashboard',
-        'netsd_render_dashboard_page',
+        'nsd-dashboard',
+        'nsd_render_dashboard_page',
         'dashicons-chart-bar',
         6
     );
@@ -43,30 +43,30 @@ function netsd_add_dashboard_menu() {
 /**
  * Set a daily cookie to track visitors.
  */
-function netsd_set_visitor_cookie() {
-    $cookie_name = 'netsd_visitor_' . gmdate('Y-m-d');
+function nsd_set_visitor_cookie() {
+    $cookie_name = 'nsd_visitor_' . gmdate('Y-m-d');
     if (!isset($_COOKIE[$cookie_name])) {
         setcookie($cookie_name, '1', time() + 86400, "/"); // 1 day
-        $visitor_count = get_option('netsd_visitor_count_last_three_months', 0);
-        update_option('netsd_visitor_count_last_three_months', $visitor_count + 1);
+        $visitor_count = get_option('nsd_visitor_count_last_three_months', 0);
+        update_option('nsd_visitor_count_last_three_months', $visitor_count + 1);
     }
 }
-add_action('init', 'netsd_set_visitor_cookie');
+add_action('init', 'nsd_set_visitor_cookie');
 
 /**
  * Enqueue Chart.js locally and add inline script for chart rendering.
  */
-add_action( 'admin_enqueue_scripts', 'netsd_enqueue_chartjs' );
-function netsd_enqueue_chartjs( $hook ) {
-    if ( $hook !== 'toplevel_page_netsd-dashboard' ) {
+add_action( 'admin_enqueue_scripts', 'nsd_enqueue_chartjs' );
+function nsd_enqueue_chartjs( $hook ) {
+    if ( $hook !== 'toplevel_page_nsd-dashboard' ) {
         return;
     }
-    wp_register_script( 'chartjs', plugins_url( 'assets/js/chart.min.js', __FILE__ ), array(), '4.4.0', true );
-    wp_enqueue_script( 'chartjs' );
+    wp_enqueue_script( 'chartjs', plugins_url( 'assets/js/chart.min.js', __FILE__ ), array(), '4.4.0', true );
+    // Jangan tambahkan inline script di sini!
 }
 
-function netsd_get_site_data_for_js() {
-    // This function should be called inside netsd_render_dashboard_page
+function nsd_get_site_data_for_js() {
+    // This function should be called inside nsd_render_dashboard_page
     global $site_data;
     return [
         'labels' => array_column( $site_data, 'name' ),
@@ -77,75 +77,24 @@ function netsd_get_site_data_for_js() {
     ];
 }
 
-function netsd_get_chartjs_inline_script( $data ) {
+function nsd_get_chartjs_inline_script( $data ) {
     $labels = wp_json_encode( $data['labels'] );
     $post_counts = wp_json_encode( $data['post_counts'] );
     $visitor_counts = wp_json_encode( $data['visitor_counts'] );
-    $post_label = esc_js( $data['post_label'] );
-    $visitor_label = esc_js( $data['visitor_label'] );
-    
-    return "document.addEventListener('DOMContentLoaded', function() {
-        var postCtx = document.getElementById('postCountChart');
-        if (postCtx) {
-            postCtx = postCtx.getContext('2d');
-            var postCountChart = new Chart(postCtx, {
-                type: 'bar',
-                data: {
-                    labels: $labels,
-                    datasets: [{
-                        label: '$post_label',
-                        data: $post_counts,
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: { 
-                    scales: { 
-                        y: { 
-                            beginAtZero: true 
-                        } 
-                    } 
-                }
-            });
-        }
-
-        var visitorCtx = document.getElementById('visitorCountChart');
-        if (visitorCtx) {
-            visitorCtx = visitorCtx.getContext('2d');
-            var visitorCountChart = new Chart(visitorCtx, {
-                type: 'bar',
-                data: {
-                    labels: $labels,
-                    datasets: [{
-                        label: '$visitor_label',
-                        data: $visitor_counts,
-                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
-                        borderColor: 'rgba(153, 102, 255, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: { 
-                    scales: { 
-                        y: { 
-                            beginAtZero: true 
-                        } 
-                    } 
-                }
-            });
-        }
-    });";
+    $post_label = $data['post_label'];
+    $visitor_label = $data['visitor_label'];
+    return "document.addEventListener('DOMContentLoaded', function() {\n\nvar postCtx = document.getElementById('postCountChart').getContext('2d');\nvar postCountChart = new Chart(postCtx, {\n    type: 'bar',\n    data: {\n        labels: $labels,\n        datasets: [{\n            label: '$post_label',\n            data: $post_counts,\n            backgroundColor: 'rgba(75, 192, 192, 0.2)',\n            borderColor: 'rgba(75, 192, 192, 1)',\n            borderWidth: 1\n        }]\n    },\n    options: { scales: { y: { beginAtZero: true } } }\n});\n\nvar visitorCtx = document.getElementById('visitorCountChart').getContext('2d');\nvar visitorCountChart = new Chart(visitorCtx, {\n    type: 'bar',\n    data: {\n        labels: $labels,\n        datasets: [{\n            label: '$visitor_label',\n            data: $visitor_counts,\n            backgroundColor: 'rgba(153, 102, 255, 0.2)',\n            borderColor: 'rgba(153, 102, 255, 1)',\n            borderWidth: 1\n        }]\n    },\n    options: { scales: { y: { beginAtZero: true } } }\n});\n\n});";
 }
 
 /**
  * Render the dashboard page with charts and tables.
  */
-function netsd_render_dashboard_page() {
+function nsd_render_dashboard_page() {
     
     // Get the search query from the URL with nonce verification and unslash
     $search_query = '';
-    if ( isset( $_GET['netsd_search_query'] ) && isset( $_GET['_wpnonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'netsd_search_action' ) ) {
-        $search_query = sanitize_text_field( wp_unslash( $_GET['netsd_search_query'] ) );
+    if ( isset( $_GET['nsd_search_query'] ) && isset( $_GET['_wpnonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'nsd_search_action' ) ) {
+        $search_query = sanitize_text_field( wp_unslash( $_GET['nsd_search_query'] ) );
     }
 
     $sites = get_sites();
@@ -157,16 +106,16 @@ function netsd_render_dashboard_page() {
         switch_to_blog( $site->blog_id );
     
         $post_count = wp_count_posts()->publish;
-        $visitor_count = get_option( 'netsd_visitor_count_last_three_months', 0 );
+        $visitor_count = get_option( 'nsd_visitor_count_last_three_months', 0 );
         $site_name = get_bloginfo( 'name' );
         $site_domain = $site->domain;
         $site_path = $site->path;
     
         // Get last updated post date
-        $last_updated_post = netsd_get_last_updated_post_date();
+        $last_updated_post = nsd_get_last_updated_post_date();
     
         // Get last login user email
-        $last_login_email = netsd_get_last_login_user_email();
+        $last_login_email = nsd_get_last_login_user_email();
     
         $site_data[] = [
             'name' => $site_name,
@@ -187,37 +136,15 @@ function netsd_render_dashboard_page() {
         return $b['post_count'] <=> $a['post_count'] ?: $b['visitor_count'] <=> $a['visitor_count'];
     });
 
-    // Enqueue Chart.js and inject chart data only on dashboard page
-    wp_enqueue_script( 'chartjs' );
-    wp_add_inline_script( 'chartjs', netsd_get_chartjs_inline_script([
+    // Enqueue Chart.js dan inject data chart hanya di halaman dashboard
+    wp_enqueue_script( 'chartjs', plugins_url( 'assets/js/chart.min.js', __FILE__ ), array(), '4.4.0', true );
+    wp_add_inline_script( 'chartjs', nsd_get_chartjs_inline_script([
         'labels' => array_column( $site_data, 'name' ),
         'post_counts' => array_column( $site_data, 'post_count' ),
         'visitor_counts' => array_column( $site_data, 'visitor_count' ),
-        'post_label' => __( 'Post Count', 'network-site-details' ),
-        'visitor_label' => __( 'Visitor Count', 'network-site-details' ),
+        'post_label' => esc_js( __( 'Post Count', 'network-site-details' ) ),
+        'visitor_label' => esc_js( __( 'Visitor Count', 'network-site-details' ) ),
     ]) );
-
-    // Register table sorting script
-    wp_add_inline_script( 'chartjs', "
-        function sortTable(columnIndex, order) {
-            var table = document.getElementById('network-site-details-table');
-            var rows = Array.from(table.rows).slice(1);
-            rows.sort(function(a, b) {
-                var cellA = a.cells[columnIndex].innerText;
-                var cellB = b.cells[columnIndex].innerText;
-                var valueA = isNaN(cellA) ? cellA : parseInt(cellA);
-                var valueB = isNaN(cellB) ? cellB : parseInt(cellB);
-                if (order === 'asc') {
-                    return valueA > valueB ? 1 : -1;
-                } else {
-                    return valueA < valueB ? 1 : -1;
-                }
-            });
-            rows.forEach(function(row) {
-                table.tBodies[0].appendChild(row);
-            });
-        }
-    " );
 
     ?>
     <div class="wrap">
@@ -226,7 +153,7 @@ function netsd_render_dashboard_page() {
         
         <!-- Export Button -->
         <div style="display: flex; gap: 10px;">
-            <a href="<?php echo esc_url( wp_nonce_url( admin_url('admin-post.php?action=netsd_export_to_excel'), 'netsd_export_to_excel', 'netsd_nonce' ) ); ?>" class="button button-primary">
+            <a href="<?php echo esc_url(admin_url('admin-post.php?action=nsd_export_to_excel')); ?>" class="button button-primary">
                 <?php esc_html_e('Export to Excel', 'network-site-details'); ?>
             </a>
         </div>
@@ -235,9 +162,9 @@ function netsd_render_dashboard_page() {
         <h2><?php esc_html_e( 'Subsite Data', 'network-site-details' ); ?></h2>
 
         <?php
-        // Debug: display message if site_data is empty
+        // Debug: tampilkan pesan jika site_data kosong
         if (empty($site_data)) {
-            echo '<div style="color:red">' . esc_html__( 'No site data found! Make sure there are subsites in your multisite network.', 'network-site-details' ) . '</div>';
+            echo '<div style="color:red">Tidak ada data site ditemukan! Pastikan ada subsite di jaringan multisite Anda.</div>';
         }
         ?>
 
@@ -272,6 +199,27 @@ function netsd_render_dashboard_page() {
     </tbody>
 </table>
 
+<script>
+function sortTable(columnIndex, order) {
+    var table = document.getElementById("network-site-details-table");
+    var rows = Array.from(table.rows).slice(1);
+    rows.sort(function(a, b) {
+        var cellA = a.cells[columnIndex].innerText;
+        var cellB = a.cells[columnIndex].innerText;
+        var valueA = isNaN(cellA) ? cellA : parseInt(cellA);
+        var valueB = isNaN(cellB) ? cellB : parseInt(cellB);
+        if (order === 'asc') {
+            return valueA > valueB ? 1 : -1;
+        } else {
+            return valueA < valueB ? 1 : -1;
+        }
+    });
+    rows.forEach(function(row) {
+        table.tBodies[0].appendChild(row);
+    });
+}
+</script>
+
         <h2><?php esc_html_e( 'Post Count Chart', 'network-site-details' ); ?></h2>
         <canvas id="postCountChart" width="400" height="200"></canvas>
 
@@ -284,14 +232,9 @@ function netsd_render_dashboard_page() {
 /**
  * Export site data to an Excel file.
  */
-add_action('admin_post_netsd_export_to_excel', 'netsd_export_to_excel');
+add_action('admin_post_nsd_export_to_excel', 'nsd_export_to_excel');
 
-function netsd_export_to_excel() {
-    // Verify nonce for security
-    if ( ! isset( $_GET['netsd_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['netsd_nonce'] ) ), 'netsd_export_to_excel' ) ) {
-        wp_die( esc_html__( 'Security check failed.', 'network-site-details' ) );
-    }
-
+function nsd_export_to_excel() {
     if (!current_user_can('manage_network')) {
         wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'network-site-details' ) );
     }
@@ -313,9 +256,9 @@ function netsd_export_to_excel() {
 
         $subsite_name = get_bloginfo('name');
         $post_count = wp_count_posts()->publish;
-        $visitor_count = get_option('netsd_visitor_count_last_three_months', 0);
-        $last_updated_post = netsd_get_last_updated_post_date();
-        $last_login_email = netsd_get_last_login_user_email();
+        $visitor_count = get_option('nsd_visitor_count_last_three_months', 0);
+        $last_updated_post = nsd_get_last_updated_post_date();
+        $last_login_email = nsd_get_last_login_user_email();
 
         $sheet->setCellValue("A{$row}", $subsite_name);
         $sheet->setCellValue("B{$row}", $post_count);
@@ -341,7 +284,7 @@ function netsd_export_to_excel() {
 /**
  * Get the date of the most recently updated post.
  */
-function netsd_get_last_updated_post_date() {
+function nsd_get_last_updated_post_date() {
     global $wpdb;
 
     $query = $wpdb->prepare("
@@ -360,33 +303,33 @@ function netsd_get_last_updated_post_date() {
 /**
  * Track last visitor email per subsite on login.
  */
-function netsd_track_last_visitor_email($user_login, $user) {
+function nsd_track_last_visitor_email($user_login, $user) {
     // Only track for logged-in users
     if (is_multisite()) {
         $blog_id = get_current_blog_id();
-        update_option('netsd_last_visitor_email', $user->user_email);
+        update_option('nsd_last_visitor_email', $user->user_email);
     }
 }
-add_action('wp_login', 'netsd_track_last_visitor_email', 10, 2);
+add_action('wp_login', 'nsd_track_last_visitor_email', 10, 2);
 
 /**
  * Track last visitor email per subsite on each page view (logged-in users only).
  */
-function netsd_track_last_visitor_email_on_view() {
+function nsd_track_last_visitor_email_on_view() {
     if ( is_user_logged_in() && is_multisite() ) {
         $user = wp_get_current_user();
         if ( $user && $user->user_email ) {
-            update_option( 'netsd_last_visitor_email', $user->user_email );
+            update_option( 'nsd_last_visitor_email', $user->user_email );
         }
     }
 }
-add_action( 'init', 'netsd_track_last_visitor_email_on_view', 20 );
+add_action( 'init', 'nsd_track_last_visitor_email_on_view', 20 );
 
 /**
  * Get the email of the last visitor (logged-in user) who accessed the subsite.
  */
-function netsd_get_last_login_user_email() {
-    $last_visitor_email = get_option('netsd_last_visitor_email');
+function nsd_get_last_login_user_email() {
+    $last_visitor_email = get_option('nsd_last_visitor_email');
     return $last_visitor_email ? esc_html($last_visitor_email) : esc_html__('No Logins', 'network-site-details');
 }
 ?>
